@@ -9,6 +9,11 @@
 #define DIR 77
 
 #define ESC 27
+
+signed char linha = 1;
+signed char coluna = 1;
+unsigned char guardaPosicao[80][25];
+
 void gotoxy(int x, int y)
 {
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE),(COORD)
@@ -16,15 +21,77 @@ void gotoxy(int x, int y)
         x-1,y-1
     });
 }
+
+void antiEscape() // Esse método faz a cobra não "escapar" da tela.
+{
+    if (linha >= 25)
+    {
+        linha = 0;
+    }
+    else if (linha <= 0)
+    {
+        linha = 25;
+    }
+
+    if (coluna >= 80)
+    {
+        coluna = 0;
+    }
+    else if (coluna <= 0)
+    {
+        coluna = 80;
+    }
+}
+
+void inicializarMatriz()
+{
+
+    for (coluna = 0; coluna < 80; coluna++)
+    {
+        for (linha = 25; linha < 25; linha++)
+        {
+            guardaPosicao[coluna][linha] = 0;
+        }
+    }
+
+    // Para coluna e linha não começar com valores errados.
+    coluna = 1;
+    linha = 1;
+}
+
+void gameOver()
+{
+    for (coluna = 0; coluna < 80; coluna++)
+    {
+        for (linha = 0; linha < 25; linha++)
+        {
+            gotoxy(coluna, linha);
+            printf(" ");
+        }
+    }
+
+    // Pisca-pisca "game-over".
+    for (;;)
+    {
+        gotoxy(37, 12);
+        printf("GAME OVER! \n\n");
+        Sleep(400);
+        gotoxy(37, 12);
+        printf("               ");
+        Sleep(200);
+
+    }
+}
+
 int main()
 {
-    int linha = 1;
-    int coluna = 1;
-    int ch;
-    int incrementoLinha = 0;
-    int incrementoColuna = 0;
+    unsigned char ch;
+    signed char incrementoLinha = 0;
+    signed char incrementoColuna = 1;
     gotoxy(1,1);
     printf("*");
+
+    inicializarMatriz();
 
     for(;;) // Loop infinito.
     {
@@ -59,27 +126,26 @@ int main()
             }
         }
 
-        if (linha >= 25)
-        {
-            linha = 0;
-        }
-        else if (linha <= 0)
-        {
-            linha = 25;
-        }
-
-        if (coluna >= 80)
-        {
-            coluna = 0;
-        }
-        else if (coluna <= 0)
-        {
-            coluna = 80;
-        }
-
-        Sleep(100); // Faz o jogo não ficar rápido.
+        // Primeiro guarda a posição e depois altera a coluna e linha.
+        guardaPosicao[coluna][linha] = 1;
         gotoxy(coluna+=incrementoColuna, linha+=incrementoLinha);
-        printf("*");
+
+        antiEscape();
+
+        if (guardaPosicao[coluna][linha] == 1)
+        {
+            gameOver();
+            break; // Na verdade, esse break não precisa porque fica em um loop infinito no pisca-pisca "GAME OVER!".
+        }
+        else
+        {
+            Sleep(100); // Faz o jogo não ficar rápido.
+            printf("*");
+        }
     }
     return 0;
 }
+
+
+
+
